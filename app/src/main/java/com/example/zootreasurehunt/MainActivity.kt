@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -17,19 +18,21 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,15 +41,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil3.compose.AsyncImage
+import com.example.zootreasurehunt.data.SightingRepository
 import com.example.zootreasurehunt.ui.theme.ZooTreasureHuntTheme
-import java.util.UUID
-
-data class Sighting(
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val isFound: Boolean = false,
-    val notes: String = ""
-)
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,23 +60,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ZooApp() {
-
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val repository = remember { SightingRepository(context) }
+    val scope = rememberCoroutineScope()
 
-    var sightings by rememberSaveable {
-        mutableStateOf(
-            listOf(
-                Sighting(name = "Lion"),
-                Sighting(name = "Red Panda"),
-                Sighting(name = "Giraffe"),
-                Sighting(name = "Kangaroo"),
-                Sighting(name = "Penguin")
-            )
-        )
-    }
-
+    var sightings by remember { mutableStateOf(emptyList<Sighting>()) }
     var selectedSighting by remember { mutableStateOf<Sighting?>(null) }
     var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        sightings = repository.loadSightings()
+    }
+
+    fun saveData(newList: List<Sighting>) {
+        sightings = newList
+        scope.launch {
+            repository.saveSightings(newList)
+        }
+    }
 
     val bottomItems = listOf(
         BottomNavItem.Home,
@@ -92,7 +92,6 @@ fun ZooApp() {
         bottomBar = {
             NavigationBar {
                 bottomItems.forEach { item ->
-
                     val isSelected =
                         currentDestination?.route == item.route::class.qualifiedName
 
@@ -114,13 +113,11 @@ fun ZooApp() {
             }
         }
     ) { innerPadding ->
-
         NavHost(
             navController = navController,
             startDestination = HomeDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-
             composable<HomeDestination> {
                 ListScreen(
                     sightings = sightings,
@@ -129,7 +126,8 @@ fun ZooApp() {
                         showDialog = true
                     },
                     onDelete = { animal ->
-                        sightings = sightings.filter { it.id != animal.id }
+                        val newList = sightings.filter { it.id != animal.id }
+                        saveData(newList)
                     }
                 )
             }
@@ -139,21 +137,22 @@ fun ZooApp() {
             }
         }
 
-
         if (showDialog && selectedSighting != null) {
             EditSightingDialog(
                 sighting = selectedSighting!!,
                 onDismiss = { showDialog = false },
-                onSave = { updatedSighting ->
-                    sightings = sightings.map {
-                        if (it.id == updatedSighting.id) updatedSighting else it
+                onSave = { updated ->
+                    val newList = sightings.map {
+                        if (it.id == updated.id) updated else it
                     }
+                    saveData(newList)
                     showDialog = false
                 }
             )
         }
     }
 }
+
 @Composable
 fun AnimalCard(
     sighting: Sighting,
@@ -175,6 +174,14 @@ fun AnimalCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            AsyncImage(
+                model = sighting.imageUrl,
+                contentDescription = sighting.name,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(end = 8.dp)
+            )
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = sighting.name,
