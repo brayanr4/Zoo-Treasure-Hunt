@@ -1,7 +1,9 @@
 package com.example.zootreasurehunt
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
@@ -20,41 +22,33 @@ fun SwipeableSighting(
     onEditClick: () -> Unit,
     onSwipe: () -> Unit
 ) {
-
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-
-            if (value == SwipeToDismissBoxValue.EndToStart) {
+            if (value == SwipeToDismissBoxValue.StartToEnd) {
                 onSwipe()
             }
 
-            value != SwipeToDismissBoxValue.StartToEnd
+            value != SwipeToDismissBoxValue.EndToStart
         }
     )
 
     SwipeToDismissBox(
         state = dismissState,
-
         backgroundContent = {
-
-            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
-
+            if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
-
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Red)
-                        .wrapContentSize(Alignment.CenterEnd)
+                        .wrapContentSize(Alignment.CenterStart)
                         .padding(16.dp),
-
                     tint = Color.White
                 )
             }
         }
     ) {
-
         AnimalCard(
             sighting = sighting,
             onClick = onEditClick

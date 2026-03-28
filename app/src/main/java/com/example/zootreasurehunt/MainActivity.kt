@@ -1,15 +1,11 @@
 package com.example.zootreasurehunt
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import android.Manifest
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import com.example.zootreasurehunt.worker.CongratulationWorker
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -31,27 +27,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
-import com.example.zootreasurehunt.data.SightingRepository
 import com.example.zootreasurehunt.ui.theme.ZooTreasureHuntTheme
-import kotlinx.coroutines.launch
+import com.example.zootreasurehunt.viewmodel.ZooViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,30 +63,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ZooApp() {
     val navController = rememberNavController()
-    val context = LocalContext.current
-    val repository = remember { SightingRepository(context) }
-    val scope = rememberCoroutineScope()
 
-    var sightings by remember { mutableStateOf(emptyList<Sighting>()) }
     var selectedSighting by remember { mutableStateOf<Sighting?>(null) }
     var showDialog by remember { mutableStateOf(false) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { }
     )
 
+    val zooViewModel: ZooViewModel = viewModel()
+    val sightings by zooViewModel.sightings.collectAsState()
+
     LaunchedEffect(Unit) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-
-        sightings = repository.loadSightings()
-    }
-
-    fun saveData(newList: List<Sighting>) {
-        sightings = newList
-        scope.launch {
-            repository.saveSightings(newList)
         }
     }
 
@@ -141,8 +127,7 @@ fun ZooApp() {
                         showDialog = true
                     },
                     onDelete = { animal ->
-                        val newList = sightings.filter { it.id != animal.id }
-                        saveData(newList)
+                        zooViewModel.deleteSighting(animal)
                     }
                 )
             }
@@ -157,18 +142,10 @@ fun ZooApp() {
                 sighting = selectedSighting!!,
                 onDismiss = { showDialog = false },
                 onSave = { updated ->
-                    if (updated.isFound && selectedSighting?.isFound == false) {
-                        val workRequest = OneTimeWorkRequestBuilder<CongratulationWorker>()
-                            .setInputData(workDataOf("ANIMAL_NAME" to updated.name))
-                            .build()
-
-                        WorkManager.getInstance(context).enqueue(workRequest)
-                    }
-
-                    val newList = sightings.map {
-                        if (it.id == updated.id) updated else it
-                    }
-                    saveData(newList)
+                    zooViewModel.updateSighting(
+                        updated = updated,
+                        wasPreviouslyFound = selectedSighting?.isFound == true
+                    )
                     showDialog = false
                 }
             )

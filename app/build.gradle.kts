@@ -66,4 +66,7 @@ dependencies {
     implementation(libs.coil.network)
     implementation(libs.coil.compose)
     implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
 }

@@ -8,6 +8,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withContext
 
 class SightingRepository(private val context: Context) {
 
@@ -38,29 +39,33 @@ class SightingRepository(private val context: Context) {
         )
     }
 
-    suspend fun saveSightings(sightings: List<Sighting>) = withContext(Dispatchers.IO) {
-        val jsonString = Json.encodeToString(sightings)
+    suspend fun saveSightings(sightings: List<Sighting>) {
+        withContext(Dispatchers.IO) {
+            val jsonString = Json.encodeToString(sightings)
 
-        context.openFileOutput(fileName, Context.MODE_PRIVATE).use { outputStream ->
-            outputStream.write(jsonString.toByteArray())
+            context.openFileOutput(fileName, Context.MODE_PRIVATE).use { outputStream ->
+                outputStream.write(jsonString.toByteArray())
+            }
         }
     }
 
-    suspend fun loadSightings(): List<Sighting> = withContext(Dispatchers.IO) {
-        val file = File(context.filesDir, fileName)
+    suspend fun loadSightings(): List<Sighting> {
+        return withContext(Dispatchers.IO) {
+            val file = File(context.filesDir, fileName)
 
-        if (!file.exists()) {
-            return@withContext getDefaultSightings()
-        }
+            if (!file.exists()) {
+                return@withContext getDefaultSightings()
+            }
 
-        try {
-            val jsonString = context.openFileInput(fileName)
-                .bufferedReader()
-                .use { it.readText() }
+            try {
+                val jsonString = context.openFileInput(fileName)
+                    .bufferedReader()
+                    .use { it.readText() }
 
-            Json.decodeFromString(jsonString)
-        } catch (e: Exception) {
-            getDefaultSightings()
+                Json.decodeFromString(jsonString)
+            } catch (e: Exception) {
+                getDefaultSightings()
+            }
         }
     }
 }
