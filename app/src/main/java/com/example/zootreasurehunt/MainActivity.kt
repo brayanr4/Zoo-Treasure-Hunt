@@ -4,6 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import android.Manifest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.example.zootreasurehunt.worker.CongratulationWorker
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -68,8 +75,16 @@ fun ZooApp() {
     var sightings by remember { mutableStateOf(emptyList<Sighting>()) }
     var selectedSighting by remember { mutableStateOf<Sighting?>(null) }
     var showDialog by remember { mutableStateOf(false) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { }
+    )
 
     LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         sightings = repository.loadSightings()
     }
 
@@ -142,6 +157,14 @@ fun ZooApp() {
                 sighting = selectedSighting!!,
                 onDismiss = { showDialog = false },
                 onSave = { updated ->
+                    if (updated.isFound && selectedSighting?.isFound == false) {
+                        val workRequest = OneTimeWorkRequestBuilder<CongratulationWorker>()
+                            .setInputData(workDataOf("ANIMAL_NAME" to updated.name))
+                            .build()
+
+                        WorkManager.getInstance(context).enqueue(workRequest)
+                    }
+
                     val newList = sightings.map {
                         if (it.id == updated.id) updated else it
                     }
