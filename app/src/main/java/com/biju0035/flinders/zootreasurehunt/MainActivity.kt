@@ -1,4 +1,4 @@
-package com.example.zootreasurehunt
+package com.biju0035.flinders.zootreasurehunt
 
 import android.Manifest
 import android.os.Bundle
@@ -45,8 +45,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
-import com.example.zootreasurehunt.ui.theme.ZooTreasureHuntTheme
-import com.example.zootreasurehunt.viewmodel.ZooViewModel
+import com.biju0035.flinders.zootreasurehunt.ui.theme.ZooTreasureHuntTheme
+import com.biju0035.flinders.zootreasurehunt.viewmodel.ZooViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

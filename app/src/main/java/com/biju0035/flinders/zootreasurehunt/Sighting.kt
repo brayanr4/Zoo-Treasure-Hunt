@@ -1,4 +1,4 @@
-package com.example.zootreasurehunt
+package com.biju0035.flinders.zootreasurehunt
 
 import java.util.UUID
 import kotlinx.serialization.Serializable

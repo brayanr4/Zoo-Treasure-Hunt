@@ -1,13 +1,9 @@
-package com.example.zootreasurehunt.data
-
+package com.biju0035.flinders.zootreasurehunt.data
 import android.content.Context
-import com.example.zootreasurehunt.Sighting
+import com.biju0035.flinders.zootreasurehunt.Sighting
 import java.io.File
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withContext
 
 class SightingRepository(private val context: Context) {

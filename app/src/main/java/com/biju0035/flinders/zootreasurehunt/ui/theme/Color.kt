@@ -1,4 +1,4 @@
-package com.example.zootreasurehunt.ui.theme
+package com.biju0035.flinders.zootreasurehunt.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

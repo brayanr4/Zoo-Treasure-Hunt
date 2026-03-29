@@ -1,6 +1,5 @@
-package com.example.zootreasurehunt.ui.theme
+package com.biju0035.flinders.zootreasurehunt.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

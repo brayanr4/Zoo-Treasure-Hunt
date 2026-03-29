@@ -1,4 +1,4 @@
-package com.example.zootreasurehunt.worker
+package com.biju0035.flinders.zootreasurehunt.worker
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.example.zootreasurehunt.R
+import com.biju0035.flinders.zootreasurehunt.R
 
 class CongratulationWorker(
     context: Context,

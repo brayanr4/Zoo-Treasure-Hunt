@@ -1,4 +1,4 @@
-package com.example.zootreasurehunt.viewmodel
+package com.biju0035.flinders.zootreasurehunt.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.example.zootreasurehunt.Sighting
-import com.example.zootreasurehunt.data.SightingRepository
-import com.example.zootreasurehunt.worker.CongratulationWorker
+import com.biju0035.flinders.zootreasurehunt.Sighting
+import com.biju0035.flinders.zootreasurehunt.data.SightingRepository
+import com.biju0035.flinders.zootreasurehunt.worker.CongratulationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
