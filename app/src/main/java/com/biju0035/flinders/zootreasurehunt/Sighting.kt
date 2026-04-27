@@ -9,5 +9,6 @@ data class Sighting(
     val name: String,
     val isFound: Boolean = false,
     val notes: String = "",
-    val imageUrl: String
+    val imageUrl: String,
+    val photoPath: String? = null
 )
